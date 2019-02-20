@@ -1,5 +1,6 @@
-#/usr/bin/python3
+#!/usr/bin/python3
 #~/anaconda3/bin/python
+
 
 #A multipurpose webscraping framework
 
@@ -15,24 +16,24 @@ import requests, csv, os, traceback
 #105 pages
 
 class Scrape():
-        
-    #pagelist should be a list with 4 or 5 items - multi-page structure, begin, end, step
+#pagelist should be a list with 4 or 5 items - multi-page structure, begin, end, step
+    def __init__(self, url, directory, filename, pagelist):
         self.url = url
         self.directory = directory
         self.filename = filename
         self.pagelist = pagelist
 
     #Open a CSV in reader mode
-    def opencsv(self):
+    def opencsv(self, input_csv=None):
         try:
-            input_csv = input('Please enter path to CSV: ')
+            if input_csv is None:
+                input_csv = input('Please enter path to CSV: ')
             if input_csv == 'quit':
                 return
-            else:
-                file = open(input_csv, 'r', encoding='utf-8')
-                csvin = csv.reader(file, quoting=csv.QUOTE_MINIMAL)
-                next(csvin)
-                return csvin
+            file = open(input_csv, 'r', encoding='utf-8')
+            csvin = csv.reader(file, quoting=csv.QUOTE_MINIMAL)
+            next(csvin)
+            return csvin
         except FileNotFoundError:
             print('CSV not found. Please try again. Enter "quit" to exit')
             c = self.opencsv()
@@ -87,7 +88,7 @@ class Scrape():
     #actually downloads the page(s)
     def get_pages(self):
         try:
-            if len(self.pagelist) == 4:
+            if len(self.pagelist) == 4 or len(self.pagelist) == 5:
                 pages = self.p_list()
                 for page in pages:
                     file_name = self.filename + str(page)
@@ -105,19 +106,22 @@ class Scrape():
             return user_input
 
     #enter a string with whatever it is you would want in a findall    
-    def parse_files(self):
+    def parse_files(self, tag=None, tag_class=None, attributes=None):
         returns = []
         filelist = os.listdir(self.directory)
-        tag = input('Please enter a tag or list of tags to search, or enter "no": ')
-        tag_class = input('If you want to search a class, enter it here, or enter "no": ')
-        attributes = input('If you want to search by attribute, enter it here (like attr_key: attr_value), or enter "no": ')
+        if tag is None:
+            tag = input('Please enter a tag or list of tags to search, or enter "no": ')
+        if tag_class is None:
+            tag_class = input('If you want to search a class, enter it here, or enter "no": ')
+        if attributes is None:
+            attributes = input('If you want to search by attribute, enter it here (like attr_key: attr_value), or enter "no": ')
         for file in filelist:
             if file != '.DS_Store':
                 openfile = open(self.directory + '/' + file, 'r', encoding='utf-8')
                 soup = BeautifulSoup(openfile, 'lxml')
                 #x = soup.find_all(str(maintag), class_="entry-content")
                 x = soup.find_all(name=self.get_value(tag), class_=self.get_value(tag_class), attrs={self.get_value(attributes)})
-                returns.append(x)
+                returns.append([x, file])
         #just return the results and you can do whatever processing you want interactively
         return returns
 

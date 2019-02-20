@@ -23,3 +23,10 @@
 
 # pycache folder
 /__pycache__/
+
+# local output folder
+/output/
+
+# local files
+*run_job.sh
+*exclusions.txt
